@@ -1,0 +1,231 @@
+int[][] grid = {
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, 
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, 
+  {1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, // Variable Gadget Path
+  {0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, 
+  {0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, 
+  {0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, 
+  {0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, 
+  {0,0,0,0,1,0,0,0,0,0,0,0,0,2,1,2,0,0,0,0,0,0,0,0,0,0,0,0}, // Clause Gadget Q-Blocks
+  {0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, 
+  {0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, 
+  {0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0}, 
+  {0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0}, // Middle Floor
+  {0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0}, 
+  {0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0}, 
+  {0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0}, 
+  {0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,3,0,0,3,0,0,3,0,0}, // Firebar mounts
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, 
+  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}  // Bottom Floor
+};
+
+float tileSize, px, py, vx, vy, pSize;
+int botState = 0; 
+boolean hasStar = false;
+
+float sx, sy, svx, svy;
+boolean starActive = false;
+
+void setup() {
+  fullScreen();
+  orientation(LANDSCAPE);
+  tileSize = min(width / 28.0, height / 18.0);
+  pSize = tileSize * 0.7;
+  resetBot();
+}
+
+void resetBot() {
+  px = tileSize * 1.0;
+  py = tileSize * 1.0;
+  vx = 0;
+  vy = 0;
+  botState = 0;
+  hasStar = false;
+  starActive = false;
+  
+  for(int r = 0; r < grid.length; r++) {
+    for(int c = 0; c < grid[0].length; c++) {
+      if (grid[r][c] == 4) grid[r][c] = 2;
+    }
+  }
+}
+
+void draw() {
+  background(240, 248, 255);
+  updateLogic();
+  drawLevel();
+  drawStar();
+  drawBot();
+}
+
+void updateLogic() {
+  float gravity = tileSize * 0.015;
+  float walkSpeed = tileSize * 0.08;
+  
+  boolean onGround = isSolid(px + pSize*0.2, py + pSize) || isSolid(px + pSize*0.8, py + pSize);
+
+  // Auto-play State Machine
+  if (botState == 0) { 
+    vx = walkSpeed; 
+    if (!onGround) botState = 1; // Fall down Variable Gadget choice
+  } else if (botState == 1) { 
+    vx = 0; 
+    if (onGround && vy > 0) botState = 2; // Landed on middle floor
+  } else if (botState == 2) { 
+    vx = walkSpeed;
+    int centerCol = floor((px + pSize/2) / tileSize);
+    if (centerCol >= 12 && px > 12 * tileSize + tileSize * 0.3) {
+      vy = -tileSize * 0.38; // Jump for Clause Gadget Q-block
+      vx = tileSize * 0.04;
+      botState = 3;
+    }
+  } else if (botState == 3 || botState == 4) { 
+    if (onGround && vy > 0) {
+      vx = 0;
+      botState = 5; // Landed at bottom, wait for star to fall
+    }
+  } else if (botState == 5) {
+    if (hasStar) {
+      botState = 6;
+      vx = walkSpeed * 1.5; // Invincible dash through Firebars
+    }
+  }
+
+  vy += gravity;
+  py += vy;
+  px += vx;
+
+  // Block hit logic
+  if (vy < 0) {
+    int headRow = floor(py / tileSize);
+    int centerCol = floor((px + pSize/2) / tileSize);
+    if (headRow >= 0 && headRow < grid.length && centerCol >= 0 && centerCol < grid[0].length) {
+      if (grid[headRow][centerCol] == 2) { 
+        grid[headRow][centerCol] = 4; // Used block
+        py = (headRow + 1) * tileSize;
+        vy = 0;
+        vx = tileSize * 0.02; // Slight drift into pit
+        botState = 4; // Falling into Clause pit
+        
+        starActive = true;
+        sx = centerCol * tileSize;
+        sy = headRow * tileSize - tileSize;
+        svx = tileSize * 0.035; // Star bounces right into the pit
+        svy = -tileSize * 0.25;
+      }
+    }
+  }
+
+  if (vy > 0 && onGround) {
+    py = floor((py + pSize) / tileSize) * tileSize - pSize;
+    vy = 0;
+  }
+  
+  // Star Logic
+  if (starActive) {
+    svy += gravity;
+    sx += svx;
+    sy += svy;
+    
+    if (svy > 0 && isSolid(sx + tileSize/2, sy + tileSize)) {
+      sy = floor((sy + tileSize) / tileSize) * tileSize - tileSize;
+      svy = -tileSize * 0.18;
+    }
+    if (svx > 0 && isSolid(sx + tileSize, sy + tileSize/2)) {
+      svx = -svx;
+    }
+    
+    if (dist(px + pSize/2, py + pSize/2, sx + tileSize/2, sy + tileSize/2) < tileSize * 1.5) {
+      hasStar = true;
+      starActive = false;
+    }
+  }
+  
+  if (px > width + tileSize * 2 || py > height) {
+    resetBot();
+  }
+}
+
+boolean isSolid(float cx, float cy) {
+  int c = floor(cx / tileSize);
+  int r = floor(cy / tileSize);
+  if (c < 0 || c >= grid[0].length || r < 0 || r >= grid.length) return false;
+  int v = grid[r][c];
+  return v == 1 || v == 3 || v == 2 || v == 4;
+}
+
+void drawLevel() {
+  float fireAngle = frameCount * 0.12;
+  for (int r = 0; r < grid.length; r++) {
+    for (int c = 0; c < grid[0].length; c++) {
+      float x = c * tileSize;
+      float y = r * tileSize;
+      int v = grid[r][c];
+      
+      if (v == 1) { 
+        fill(200, 100, 50); stroke(100, 50, 20); strokeWeight(2);
+        rect(x, y, tileSize, tileSize);
+        line(x, y + tileSize/2, x + tileSize, y + tileSize/2);
+      } else if (v == 2) { 
+        fill(255, 200, 0); stroke(0); strokeWeight(2);
+        rect(x, y, tileSize, tileSize);
+        fill(0); textAlign(CENTER, CENTER); textSize(tileSize * 0.8);
+        text("?", x + tileSize/2, y + tileSize/2 - 2);
+      } else if (v == 4) { 
+        fill(150, 100, 50); stroke(100, 50, 20); strokeWeight(2);
+        rect(x, y, tileSize, tileSize);
+      } else if (v == 3) { 
+        fill(200, 100, 50); stroke(100, 50, 20);
+        rect(x, y, tileSize, tileSize);
+        pushMatrix();
+        translate(x + tileSize/2, y + tileSize/2);
+        rotate(fireAngle);
+        noStroke();
+        for(int i = 1; i <= 3; i++) {
+          fill(255, 200, 0, 150); circle(i * tileSize * 0.7, 0, tileSize * 0.6);
+          fill(255, 50, 0); circle(i * tileSize * 0.7, 0, tileSize * 0.35);
+        }
+        popMatrix();
+      }
+    }
+  }
+}
+
+void drawStar() {
+  if (starActive) {
+    pushMatrix();
+    translate(sx + tileSize/2, sy + tileSize/2);
+    rotate(frameCount * 0.1);
+    colorMode(HSB, 255); fill((frameCount * 15) % 255, 255, 255); colorMode(RGB, 255);
+    noStroke();
+    beginShape();
+    for (int i = 0; i < 5; i++) {
+      float a = TWO_PI * i / 5 - HALF_PI;
+      float a2 = TWO_PI * (i + 0.5) / 5 - HALF_PI;
+      vertex(cos(a) * tileSize * 0.4, sin(a) * tileSize * 0.4);
+      vertex(cos(a2) * tileSize * 0.15, sin(a2) * tileSize * 0.15);
+    }
+    endShape(CLOSE);
+    popMatrix();
+  }
+}
+
+void drawBot() {
+  if (hasStar) {
+    colorMode(HSB, 255); fill((frameCount * 25) % 255, 200, 255); colorMode(RGB, 255);
+  } else {
+    fill(255, 0, 0);
+  }
+  noStroke();
+  rect(px, py, pSize, pSize);
+  if (!hasStar) fill(0, 0, 255);
+  rect(px, py + (pSize/2), pSize, pSize/2);
+  fill(255);
+  if (vx < 0 || (vx == 0 && botState < 2)) {
+    rect(px + pSize * 0.1, py + pSize * 0.2, pSize * 0.15, pSize * 0.15);
+    rect(px + pSize * 0.3, py + pSize * 0.2, pSize * 0.15, pSize * 0.15);
+  } else {
+    rect(px + pSize * 0.6, py + pSize * 0.2, pSize * 0.15, pSize * 0.15);
+    rect(px + pSize * 0.8, py + pSize * 0.2, pSize * 0.15, pSize * 0.15);
+  }
+}
