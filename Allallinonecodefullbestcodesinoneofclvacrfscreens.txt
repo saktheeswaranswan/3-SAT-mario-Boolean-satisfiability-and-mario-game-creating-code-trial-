@@ -1,0 +1,695 @@
+// 3-SAT to Mario NP-Hardness Full Reduction & Crossover Simulator
+// Screen 1: Toggle X and Y variables
+// Screen 2: Confirmation & Auto Play start
+// Screen 3: The dynamic Mario 3-SAT simulation
+// Screen 4: Super Mario Crossover Gadget Simulator
+
+int screenState = 1; // 1 = Setup, 2 = Transition, 3 = SAT Sim, 4 = Crossover Sim
+
+// ==========================================
+// 3-SAT SIMULATOR GLOBALS
+// ==========================================
+int valX = 1; 
+int valY = 0;
+
+int[][] satGrid;
+int[][] satOrigGrid;
+int satROWS = 35;
+int satCOLS = 48;
+float satTileSize;
+float satOffsetX, satOffsetY;
+
+int[][] varGadgetTemplate = {
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,1,1,1,1,0,0,0,0,0,0,1,1,1,1,0},
+  {0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0},
+  {0,0,0,0,1,0,0,1,1,0,0,1,0,0,0,0},
+  {0,0,0,0,1,0,1,0,0,1,0,1,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0}
+};
+
+int[][] clauseGadgetTemplate = {
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,1,2,1,2,1,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0},
+  {0,3,3,3,3,3,3,3,3,3,3,0,1,1,1,1,1,1,1,0}, 
+  {0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0},
+  {0,3,3,3,3,3,3,3,3,3,3,1,1,0,0,0,0,0,0,0}, 
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+};
+ArrayList<Bot> bots = new ArrayList<Bot>();
+
+
+// ==========================================
+// CROSSOVER SIMULATOR GLOBALS
+// ==========================================
+int crossROWS = 14;
+int crossCOLS = 22;
+int[][] crossOrigGrid = {
+  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}, 
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1}, 
+  {1,0,0,0,0,0,1,0,3,3,3,3,3,3,3,0,2,3,3,3,3,1}, 
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,1}, 
+  {1,1,1,1,1,1,1,0,3,3,0,1,1,1,1,1,1,1,1,1,1,1}, 
+  {1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1}, 
+  {1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1}, 
+  {1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1}, 
+  {1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1}, 
+  {1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1}, 
+  {1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1}, 
+  {1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1}, 
+  {1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1}, 
+  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}  
+};
+int[][] crossGrid;
+float crossTileSize;
+float crossOffsetX, crossOffsetY;
+int runPhase = 1;
+Mario mario;
+Goomba goomba;
+Mushroom mushroom;
+
+
+void setup() {
+  fullScreen(); 
+  
+  // -- Setup 3-SAT Grid Math --
+  float sTW = width / (float)satCOLS;
+  float sTH = height / (float)satROWS;
+  satTileSize = min(sTW, sTH);
+  satOffsetX = (width - (satCOLS * satTileSize)) / 2;
+  satOffsetY = (height - (satROWS * satTileSize)) / 2;
+  
+  satOrigGrid = new int[satROWS][satCOLS];
+  for(int r = 0; r < satROWS; r++) {
+    for(int c = 0; c < satCOLS; c++) {
+      satOrigGrid[r][c] = 0;
+    }
+  }
+  satOrigGrid[3][8] = 2; 
+  for(int i = 6; i < 11; i++) satOrigGrid[6][i] = 1; 
+  stampSatGadget(varGadgetTemplate, 3, 11);   
+  stampSatGadget(varGadgetTemplate, 3, 29);   
+  stampSatGadget(clauseGadgetTemplate, 20, 11); 
+  stampSatGadget(clauseGadgetTemplate, 20, 29); 
+
+  // -- Setup Crossover Grid Math --
+  float cTW = width / (float)crossCOLS;
+  float cTH = (height - 60) / (float)crossROWS;
+  crossTileSize = min(cTW, cTH);
+  crossOffsetX = (width - (crossCOLS * crossTileSize)) / 2;
+  crossOffsetY = ((height - 60) - (crossROWS * crossTileSize)) / 2 + 60;
+}
+
+void resetSatSim() {
+  satGrid = new int[satROWS][satCOLS];
+  for(int r = 0; r < satROWS; r++) {
+    for(int c = 0; c < satCOLS; c++) {
+      satGrid[r][c] = satOrigGrid[r][c];
+    }
+  }
+  bots.clear();
+  float dirX = (valX == 1) ? -1 : 1; 
+  float dirY = (valY == 1) ? -1 : 1;
+  bots.add(new VarBot(3, 11, dirX));  
+  bots.add(new VarBot(3, 29, dirY)); 
+  bots.add(new ClauseBot(20, 11));  
+  bots.add(new ClauseBot(20, 29)); 
+}
+
+void resetCrossSim() {
+  crossGrid = new int[crossROWS][crossCOLS];
+  for (int r = 0; r < crossROWS; r++) {
+    for (int c = 0; c < crossCOLS; c++) {
+      crossGrid[r][c] = crossOrigGrid[r][c];
+    }
+  }
+  mario = new Mario(1.5 * crossTileSize, 2.2 * crossTileSize);
+  goomba = new Goomba(4.5 * crossTileSize, 3.1 * crossTileSize);
+  mushroom = null;
+}
+
+void draw() {
+  if (screenState == 1) drawScreen1();
+  else if (screenState == 2) drawScreen2();
+  else if (screenState == 3) drawScreen3();
+  else if (screenState == 4) drawScreen4();
+}
+
+// ---------------- Screen 1: Setup ----------------
+void drawScreen1() {
+  background(240);
+  textAlign(CENTER, CENTER);
+  
+  fill(0); textSize(48);
+  text("3-SAT to Mario Reduction Simulator", width/2, height/3 - 50);
+  textSize(24);
+  text("Tap the Variables to toggle between 1 (True) and 0 (False)", width/2, height/3 + 20);
+  
+  if (valX == 1) fill(100, 200, 100); else fill(200, 100, 100);
+  stroke(0); strokeWeight(3);
+  rect(width/2 - 180, height/2 - 40, 140, 80, 10);
+  fill(255); textSize(32); text("X = " + valX, width/2 - 110, height/2);
+  
+  if (valY == 1) fill(100, 200, 100); else fill(200, 100, 100);
+  rect(width/2 + 40, height/2 - 40, 140, 80, 10);
+  fill(255); textSize(32); text("Y = " + valY, width/2 + 110, height/2);
+  
+  fill(50, 150, 255);
+  rect(width/2 - 100, height/2 + 120, 200, 60, 10);
+  fill(255); textSize(28); text("Next", width/2, height/2 + 150);
+}
+
+// ---------------- Screen 2: Auto Play Config ----------------
+void drawScreen2() {
+  background(240);
+  textAlign(CENTER, CENTER);
+  
+  fill(0); textSize(48);
+  text("Configuration Complete", width/2, height/3 - 50);
+  textSize(32); fill(100);
+  text("Variable X set to: " + valX, width/2, height/2 - 40);
+  text("Variable Y set to: " + valY, width/2, height/2 + 10);
+  textSize(20);
+  text("The bots will auto-play the paths corresponding to your variables.", width/2, height/2 + 80);
+  
+  fill(255, 150, 0); stroke(0); strokeWeight(3);
+  rect(width/2 - 120, height/2 + 150, 240, 60, 10);
+  fill(255); textSize(28); text("Auto Play Simulation", width/2, height/2 + 180);
+  
+  fill(200); rect(50, 50, 120, 50, 10);
+  fill(0); textSize(20); text("Back", 110, 75);
+}
+
+// ---------------- Screen 3: SAT Simulation ----------------
+void drawScreen3() {
+  background(255); 
+  pushMatrix();
+  translate(satOffsetX, satOffsetY);
+  
+  drawSatConnections();
+  drawSatLevel();
+  drawSatLabels();
+  
+  for(Bot b : bots) {
+    b.update();
+    b.drawBot();
+  }
+  popMatrix();
+  
+  // Menu Button
+  stroke(0); strokeWeight(2); fill(200);
+  rect(20, 20, 100, 40, 5);
+  fill(0); textAlign(CENTER, CENTER); textSize(16); text("Menu", 70, 40);
+  
+  // Next: Crossover Button
+  fill(100, 200, 100);
+  rect(width - 220, 20, 200, 40, 5);
+  fill(0); text("Next: Crossover Gadget", width - 120, 40);
+}
+
+// ---------------- Screen 4: Crossover Simulation ----------------
+void drawScreen4() {
+  background(92, 148, 252); 
+  pushMatrix();
+  translate(crossOffsetX, crossOffsetY);
+  drawCrossLevel();
+  if (goomba != null) goomba.draw();
+  if (mushroom != null) { mushroom.update(); mushroom.draw(); }
+  mario.update();
+  mario.draw();
+  popMatrix();
+  drawCrossOverlay();
+  
+  // Menu Button
+  stroke(0); strokeWeight(2); fill(200);
+  rect(20, 20, 100, 40, 5);
+  fill(0); textAlign(CENTER, CENTER); textSize(16); text("Menu", 70, 40);
+}
+
+// ---------------- Interaction ----------------
+void mousePressed() {
+  if (screenState == 1) {
+    if (mouseX > width/2 - 180 && mouseX < width/2 - 40 && mouseY > height/2 - 40 && mouseY < height/2 + 40) valX = (valX == 1) ? 0 : 1;
+    else if (mouseX > width/2 + 40 && mouseX < width/2 + 180 && mouseY > height/2 - 40 && mouseY < height/2 + 40) valY = (valY == 1) ? 0 : 1;
+    else if (mouseX > width/2 - 100 && mouseX < width/2 + 100 && mouseY > height/2 + 120 && mouseY < height/2 + 180) screenState = 2;
+  } else if (screenState == 2) {
+    if (mouseX > width/2 - 120 && mouseX < width/2 + 120 && mouseY > height/2 + 150 && mouseY < height/2 + 210) {
+      resetSatSim(); screenState = 3;
+    }
+    else if (mouseX > 50 && mouseX < 170 && mouseY > 50 && mouseY < 100) screenState = 1;
+  } else if (screenState == 3) {
+    if (mouseX > 20 && mouseX < 120 && mouseY > 20 && mouseY < 60) screenState = 1;
+    else if (mouseX > width - 220 && mouseX < width - 20 && mouseY > 20 && mouseY < 60) {
+      runPhase = 1;
+      resetCrossSim(); 
+      screenState = 4;
+    }
+  } else if (screenState == 4) {
+    if (mouseX > 20 && mouseX < 120 && mouseY > 20 && mouseY < 60) screenState = 1;
+  }
+}
+
+// ==========================================
+// 3-SAT SIMULATION METHODS & CLASSES
+// ==========================================
+void stampSatGadget(int[][] template, int rOffset, int cOffset) {
+  for (int r = 0; r < template.length; r++) {
+    for (int c = 0; c < template[0].length; c++) {
+      if (template[r][c] != 0) satOrigGrid[r + rOffset][c + cOffset] = template[r][c];
+    }
+  }
+}
+
+boolean isSatSolid(float checkX, float checkY) {
+  int col = floor(checkX / satTileSize);
+  int row = floor(checkY / satTileSize);
+  if (col < 0 || col >= satCOLS || row < 0 || row >= satROWS) return false;
+  return satGrid[row][col] == 1;
+}
+
+void drawSatLevel() {
+  float fireAngle = frameCount * 0.12;
+  for (int r = 0; r < satROWS; r++) {
+    for (int c = 0; c < satCOLS; c++) {
+      float x = c * satTileSize; float y = r * satTileSize;
+      int v = satGrid[r][c];
+      
+      if (v == 1) { 
+        fill(200, 100, 50); stroke(255); strokeWeight(1);
+        rect(x, y, satTileSize, satTileSize);
+      } else if (v == 2) { 
+        fill(255, 200, 0); stroke(0); strokeWeight(1);
+        rect(x, y, satTileSize, satTileSize);
+        fill(0); textAlign(CENTER, CENTER); textSize(satTileSize * 0.8);
+        text("?", x + satTileSize/2, y + satTileSize/2 - 2);
+      } else if (v == 4) { 
+        fill(150, 100, 50); stroke(0); strokeWeight(1);
+        rect(x, y, satTileSize, satTileSize);
+      } else if (v == 3) { 
+        fill(200, 100, 50); stroke(255);
+        rect(x, y, satTileSize, satTileSize);
+        pushMatrix(); translate(x + satTileSize/2, y + satTileSize/2); rotate(fireAngle);
+        noStroke();
+        for(int i = 1; i <= 3; i++) {
+          fill(255, 150, 0, 150); circle(i * satTileSize * 0.7, 0, satTileSize * 0.6);
+          fill(255, 50, 0); circle(i * satTileSize * 0.7, 0, satTileSize * 0.35);
+        }
+        popMatrix();
+      }
+    }
+  }
+}
+
+void drawSatConnections() {
+  stroke(0); strokeWeight(1.5); noFill();
+  beginShape(); vertex(9 * satTileSize, 6 * satTileSize); vertex(19 * satTileSize, 6 * satTileSize); vertex(19 * satTileSize, 10 * satTileSize); endShape();
+  beginShape(); vertex(21 * satTileSize, 6 * satTileSize); vertex(37 * satTileSize, 6 * satTileSize); vertex(37 * satTileSize, 10 * satTileSize); endShape();
+
+  float v1x = 16.5 * satTileSize; float v1nx = 21.5 * satTileSize; 
+  float v2y = 34.5 * satTileSize; float v2ny = 39.5 * satTileSize; 
+  float varBotY = 15 * satTileSize;
+  float clauseTopY = 23 * satTileSize;
+  float c1p1 = 24.5 * satTileSize; float c1p2 = 26.5 * satTileSize; 
+  float c2p1 = 42.5 * satTileSize; float c2p2 = 44.5 * satTileSize; 
+  
+  drawSatDiagonal(v1x, varBotY, c2p1, clauseTopY);
+  drawSatDiagonal(v1nx, varBotY, c1p1, clauseTopY);
+  drawSatDiagonal(v2y, varBotY, c1p2, clauseTopY);
+  
+  beginShape(); vertex(v2ny, varBotY); vertex(v2ny, varBotY + 2 * satTileSize); vertex(c2p2, varBotY + 2 * satTileSize); vertex(c2p2, clauseTopY); endShape();
+  beginShape(); vertex(48 * satTileSize, 32 * satTileSize); vertex(48 * satTileSize, 26 * satTileSize); vertex(44 * satTileSize, 26 * satTileSize); endShape();
+}
+
+void drawSatDiagonal(float x1, float y1, float x2, float y2) {
+  beginShape(); vertex(x1, y1); vertex(x1, y1 + satTileSize); vertex(x2, y2 - satTileSize); vertex(x2, y2); endShape();
+}
+
+void drawSatLabels() {
+  fill(0); textSize(satTileSize * 0.6); textAlign(CENTER, BOTTOM);
+  text("start", 9 * satTileSize, 5.5 * satTileSize);
+  
+  float yTop = 10.5 * satTileSize;
+  text("1, x", 16.5 * satTileSize, yTop); text("↓", 16.5 * satTileSize, yTop + satTileSize);
+  text("0, ¬x", 21.5 * satTileSize, yTop); text("↓", 21.5 * satTileSize, yTop + satTileSize);
+  
+  text("1, y", 34.5 * satTileSize, yTop); text("↓", 34.5 * satTileSize, yTop + satTileSize);
+  text("0, ¬y", 39.5 * satTileSize, yTop); text("↓", 39.5 * satTileSize, yTop + satTileSize);
+
+  fill(255); stroke(0); strokeWeight(2); rect(6 * satTileSize, 29 * satTileSize, 4 * satTileSize, 2.5 * satTileSize);
+  fill(0); textAlign(CENTER, CENTER); textSize(satTileSize * 0.7); text("finish", 8 * satTileSize, 30.25 * satTileSize);
+}
+
+abstract class Bot {
+  float px, py, vx, vy, pSize;
+  Bot() { pSize = satTileSize * 0.7; }
+  abstract void update();
+  abstract void drawBot();
+}
+
+class VarBot extends Bot {
+  float startX, startY, dir; 
+  VarBot(int rOffset, int cOffset, float startDir) {
+    super();
+    startX = (cOffset + 7.5) * satTileSize; 
+    startY = (rOffset + 2) * satTileSize;
+    dir = startDir; reset();
+  }
+  void reset() { px = startX; py = startY; vx = satTileSize * 0.05 * dir; vy = 0; }
+  void update() {
+    vy += satTileSize * 0.02;
+    py += vy;
+    if (vy > 0) {
+      if (isSatSolid(px, py + pSize) || isSatSolid(px + pSize, py + pSize)) {
+        py = floor((py + pSize) / satTileSize) * satTileSize - pSize; vy = 0;
+      }
+    }
+    px += vx;
+    if (vx > 0 && (isSatSolid(px + pSize, py) || isSatSolid(px + pSize, py + pSize * 0.9))) px = floor((px + pSize) / satTileSize) * satTileSize - pSize;
+    else if (vx < 0 && (isSatSolid(px, py) || isSatSolid(px, py + pSize * 0.9))) px = ceil(px / satTileSize) * satTileSize;
+    if (py > 16 * satTileSize) reset();
+  }
+  void drawBot() {
+    fill(255, 0, 0); noStroke(); rect(px, py, pSize, pSize);
+    fill(0, 0, 255); rect(px, py + pSize/2, pSize, pSize/2);
+    fill(255);
+    if (vx < 0) {
+      rect(px + pSize*0.1, py + pSize*0.2, pSize*0.15, pSize*0.15);
+      rect(px + pSize*0.3, py + pSize*0.2, pSize*0.15, pSize*0.15);
+    } else {
+      rect(px + pSize*0.6, py + pSize*0.2, pSize*0.15, pSize*0.15);
+      rect(px + pSize*0.8, py + pSize*0.2, pSize*0.15, pSize*0.15);
+    }
+  }
+}
+
+class ClauseBot extends Bot {
+  int rOffset, cOffset;
+  int botState = 0;
+  boolean hasStar = false, starActive = false;
+  float sx, sy, svx, svy;
+  int sequenceTimer = 0, waitTimer = 0;
+  int targetCol, targetRow, pitRow, fireRow, jumpWallCol;
+
+  ClauseBot(int ro, int co) {
+    super(); rOffset = ro; cOffset = co;
+    targetCol = cOffset + 13; targetRow = rOffset + 3;
+    pitRow = rOffset + 9; fireRow = rOffset + 9;
+    jumpWallCol = cOffset + 11; reset();
+  }
+
+  void reset() {
+    px = targetCol * satTileSize + (satTileSize - pSize) / 2;
+    py = pitRow * satTileSize - pSize;
+    vx = 0; vy = 0; botState = 0; hasStar = false; starActive = false; sequenceTimer = 0; waitTimer = 0;
+    satGrid[rOffset + 3][cOffset + 13] = satOrigGrid[rOffset + 3][cOffset + 13];
+    satGrid[rOffset + 3][cOffset + 15] = satOrigGrid[rOffset + 3][cOffset + 15];
+  }
+
+  void update() {
+    float gravity = satTileSize * 0.015;
+    sequenceTimer++;
+    if (botState > 0) { vy += gravity; py += vy; px += vx; }
+    if (botState == 0 && sequenceTimer == 60) { botState = 1; vy = -satTileSize * 0.42; }
+
+    if (botState == 1 && vy < 0) {
+      int headRow = floor(py / satTileSize);
+      int headCol = floor((px + pSize/2) / satTileSize);
+      if (headRow == targetRow && satGrid[headRow][headCol] == 2) {
+        satGrid[headRow][headCol] = 4;
+        py = (headRow + 1) * satTileSize; vy = 0; botState = 2; starActive = true;
+        sx = headCol * satTileSize + (satTileSize * 0.1); sy = headRow * satTileSize; svx = 0; svy = 0;
+      }
+    }
+
+    if (botState == 2 && vy > 0 && py + pSize >= pitRow * satTileSize) { py = pitRow * satTileSize - pSize; vy = 0; }
+
+    if (starActive) {
+      svy += gravity; sy += svy; sx += svx;
+      if (svy > 0 && sy + satTileSize >= pitRow * satTileSize) { sy = pitRow * satTileSize - satTileSize; svy = -satTileSize * 0.18; }
+      if (botState == 2 && dist(px + pSize/2, py + pSize/2, sx + satTileSize/2, sy + satTileSize/2) < satTileSize) {
+        hasStar = true; starActive = false; botState = 3; vy = -satTileSize * 0.38; vx = -satTileSize * 0.08;
+      }
+    }
+
+    if ((botState == 3 || botState == 4 || botState == 5) && px < jumpWallCol * satTileSize) {
+      if (py + pSize >= fireRow * satTileSize) {
+        py = fireRow * satTileSize - pSize; vy = 0;
+        if (botState == 3) { botState = 4; vx = 0; waitTimer = 60; }
+      }
+    }
+    if (botState == 4) { waitTimer--; if (waitTimer <= 0) { botState = 5; vx = -satTileSize * 0.05; } }
+    if (px < cOffset * satTileSize - satTileSize * 2) reset();
+  }
+
+  void drawBot() {
+    if (starActive) {
+      pushMatrix(); translate(sx + satTileSize/2, sy + satTileSize/2); rotate(frameCount * 0.1);
+      colorMode(HSB, 255); fill((frameCount * 15) % 255, 255, 255); colorMode(RGB, 255); noStroke();
+      beginShape();
+      for (int i = 0; i < 5; i++) {
+        float a = TWO_PI * i / 5 - HALF_PI; float a2 = TWO_PI * (i + 0.5) / 5 - HALF_PI;
+        vertex(cos(a) * satTileSize * 0.4, sin(a) * satTileSize * 0.4); vertex(cos(a2) * satTileSize * 0.15, sin(a2) * satTileSize * 0.15);
+      }
+      endShape(CLOSE); popMatrix();
+    }
+    if (hasStar) { colorMode(HSB, 255); fill((frameCount * 25) % 255, 200, 255); colorMode(RGB, 255); } 
+    else fill(255, 0, 0);
+    noStroke(); rect(px, py, pSize, pSize);
+    if (!hasStar) fill(0, 0, 255);
+    rect(px, py + (pSize/2), pSize, pSize/2);
+    fill(255);
+    if (vx <= 0) {
+      rect(px + pSize * 0.1, py + pSize * 0.2, pSize * 0.15, pSize * 0.15);
+      rect(px + pSize * 0.3, py + pSize * 0.2, pSize * 0.15, pSize * 0.15);
+    } else {
+      rect(px + pSize * 0.6, py + pSize * 0.2, pSize * 0.15, pSize * 0.15);
+      rect(px + pSize * 0.8, py + pSize * 0.2, pSize * 0.15, pSize * 0.15);
+    }
+  }
+}
+
+// ==========================================
+// CROSSOVER SIMULATION METHODS & CLASSES
+// ==========================================
+
+void drawCrossLevel() {
+  for (int r = 0; r < crossROWS; r++) {
+    for (int c = 0; c < crossCOLS; c++) {
+      float x = c * crossTileSize; float y = r * crossTileSize; int v = crossGrid[r][c];
+      
+      if (v == 1) { 
+        fill(180, 80, 30); noStroke(); rect(x, y, crossTileSize, crossTileSize);
+        fill(220, 130, 70);
+        beginShape(); vertex(x, y); vertex(x + crossTileSize, y); vertex(x + crossTileSize*0.8, y + crossTileSize*0.2); vertex(x + crossTileSize*0.2, y + crossTileSize*0.2); endShape(CLOSE);
+        beginShape(); vertex(x, y); vertex(x + crossTileSize*0.2, y + crossTileSize*0.2); vertex(x + crossTileSize*0.2, y + crossTileSize*0.8); vertex(x, y + crossTileSize); endShape(CLOSE);
+        fill(100, 40, 10);
+        beginShape(); vertex(x, y + crossTileSize); vertex(x + crossTileSize, y + crossTileSize); vertex(x + crossTileSize*0.8, y + crossTileSize*0.8); vertex(x + crossTileSize*0.2, y + crossTileSize*0.8); endShape(CLOSE);
+        beginShape(); vertex(x + crossTileSize, y); vertex(x + crossTileSize*0.8, y + crossTileSize*0.2); vertex(x + crossTileSize*0.8, y + crossTileSize*0.8); vertex(x + crossTileSize, y + crossTileSize); endShape(CLOSE);
+        fill(150, 60, 20); rect(x + crossTileSize*0.2, y + crossTileSize*0.2, crossTileSize*0.6, crossTileSize*0.6);
+      } 
+      else if (v == 3) {
+        fill(250, 210, 0); stroke(200, 150, 0); strokeWeight(1.5); rect(x, y, crossTileSize, crossTileSize);
+        stroke(180, 120, 0); line(x, y + crossTileSize/2, x + crossTileSize, y + crossTileSize/2);
+        line(x + crossTileSize/2, y, x + crossTileSize/2, y + crossTileSize/2); line(x + crossTileSize/4, y + crossTileSize/2, x + crossTileSize/4, y + crossTileSize);
+        line(x + crossTileSize*0.75, y + crossTileSize/2, x + crossTileSize*0.75, y + crossTileSize);
+      } 
+      else if (v == 2) { 
+        fill(220, 50, 50); stroke(0); strokeWeight(1.5); rect(x, y, crossTileSize, crossTileSize);
+        fill(255); textAlign(CENTER, CENTER); textSize(crossTileSize * 0.7); text("?", x + crossTileSize/2, y + crossTileSize/2 - 2);
+      } 
+      else if (v == 4) { 
+        fill(140, 90, 60); stroke(0); strokeWeight(1.5); rect(x, y, crossTileSize, crossTileSize);
+        fill(0, 50); rect(x + crossTileSize*0.1, y + crossTileSize*0.1, crossTileSize*0.8, crossTileSize*0.8);
+      }
+    }
+  }
+}
+
+void drawCrossOverlay() {
+  fill(0, 0, 0, 200); noStroke(); rect(0, 0, width, 60);
+  fill(255); textSize(18); textAlign(CENTER, CENTER);
+  if (runPhase == 1) text("PHASE 1 (Custom Return): Eats gap mushroom, runs right, breaks wall, climbs onto roof, smashes down shaft.", width/2, 30);
+  else text("PHASE 2 (Vertical): Jumps Goomba, stays Big, lands on upper yellow bridge, smashes consecutively down the shaft.", width/2, 30);
+}
+
+class Mario {
+  float x, y, vx, vy;
+  boolean isSuper = true;
+  int state = 0, iFrames = 0, waitTimer = 0;
+  boolean facingRight = true;
+
+  Mario(float startX, float startY) { x = startX; y = startY; vx = crossTileSize * 0.055; vy = 0; }
+
+  void update() {
+    float w = crossTileSize * 0.7; float h = isSuper ? crossTileSize * 1.8 : crossTileSize * 0.9;
+    if (iFrames > 0) iFrames--;
+    x += vx; vy += crossTileSize * 0.02; y += vy;
+    
+    if (vx > 0) facingRight = true;
+    if (vx < 0) facingRight = false;
+    
+    if (runPhase == 1) {
+      if (state <= 6 && y + h >= 4 * crossTileSize && vy > 0) { y = 4 * crossTileSize - h; vy = 0; }
+      if ((state == 7 || state == 8) && vy > 0 && y + h >= 2 * crossTileSize && x < 19 * crossTileSize) { y = 2 * crossTileSize - h; vy = 0; }
+    } else if (runPhase == 2) {
+      if (state == 0 && y + h >= 4 * crossTileSize && vy > 0) { y = 4 * crossTileSize - h; vy = 0; }
+    }
+    
+    if (runPhase == 1) {
+      if (state == 0) { 
+        if (goomba != null && goomba.active && abs((x + w/2) - (goomba.x + crossTileSize*0.5)) < crossTileSize * 0.6) {
+          goomba.active = false; isSuper = false; y += crossTileSize * 0.9; iFrames = 60; vy = -crossTileSize * 0.2; state = 1;
+        }
+      } 
+      else if (state == 1) { 
+        vx = crossTileSize * 0.055;
+        if (x >= 16.15 * crossTileSize) { x = 16.15 * crossTileSize; vx = 0; vy = -crossTileSize * 0.48; state = 2; }
+      } 
+      else if (state == 2) { 
+        if (vy >= 0 && y <= 3.0 * crossTileSize) { 
+          if (crossGrid[2][16] == 2) {
+            crossGrid[2][16] = 4; mushroom = new Mushroom(16 * crossTileSize, 1 * crossTileSize); state = 3;
+          }
+        }
+      } 
+      else if (state == 3) { 
+        vx = -crossTileSize * 0.04;
+        if (x <= 15.1 * crossTileSize) { x = 15.1 * crossTileSize; vx = 0; facingRight = true; }
+        if (mushroom != null && mushroom.active) {
+          if (dist(x + w/2, y + h/2, mushroom.x + crossTileSize/2, mushroom.y + crossTileSize/2) < crossTileSize) {
+            mushroom.active = false; isSuper = true; y -= crossTileSize * 0.9; waitTimer = 15; state = 4;
+          }
+        }
+      } 
+      else if (state == 4) { 
+        waitTimer--;
+        if (waitTimer <= 0) {
+          vx = crossTileSize * 0.06;
+          if (x >= 19.3 * crossTileSize && crossGrid[2][20] == 3) {
+            vx = 0; crossGrid[2][20] = 0; crossGrid[3][20] = 0; vy = -crossTileSize * 0.4; state = 5;
+          }
+        }
+      }
+      else if (state == 5) { 
+        if (y + h >= 4 * crossTileSize) { y = 4 * crossTileSize - h; vy = -crossTileSize * 0.70; vx = -crossTileSize * 0.07; state = 6; }
+      }
+      else if (state == 6) { 
+        if (vy >= 0 && y + h >= 2 * crossTileSize && x < 19.0 * crossTileSize) {
+          y = 2 * crossTileSize - h; vy = 0; vx = -crossTileSize * 0.09; state = 7;
+        }
+      }
+      else if (state == 7) { 
+        y = 2 * crossTileSize - h; 
+        if (x <= 8.65 * crossTileSize) { x = 8.65 * crossTileSize; vx = 0; facingRight = true; waitTimer = 15; state = 8; }
+      }
+      else if (state == 8) { 
+        waitTimer--;
+        if (waitTimer <= 0) { crossGrid[2][8] = 0; crossGrid[2][9] = 0; vy = crossTileSize * 0.1; state = 9; }
+      }
+      else if (state == 9) { 
+        if (y + h >= 4 * crossTileSize) { y = 4 * crossTileSize - h; vy = 0; waitTimer = 15; state = 10; }
+      }
+      else if (state == 10) { 
+        waitTimer--;
+        if (waitTimer <= 0) { crossGrid[4][8] = 0; crossGrid[4][9] = 0; vy = crossTileSize * 0.1; state = 11; }
+      }
+      else if (state == 11) { 
+        if (y > (crossROWS + 1) * crossTileSize) { runPhase = 2; resetCrossSim(); }
+      }
+    } 
+    else if (runPhase == 2) {
+      if (state == 0) { 
+        vx = crossTileSize * 0.12; 
+        if (x >= 2.3 * crossTileSize) { vy = -crossTileSize * 0.40; state = 1; }
+      } 
+      else if (state == 1) { 
+        if (vy > 0 && y + h >= 2 * crossTileSize && x >= 7.0 * crossTileSize) { 
+           y = 2 * crossTileSize - h; vy = 0; vx = 0; x = 8.65 * crossTileSize; waitTimer = 15; state = 2;
+        }
+      }
+      else if (state == 2) { 
+        waitTimer--; if (waitTimer <= 0) { crossGrid[2][8] = 0; crossGrid[2][9] = 0; vy = crossTileSize * 0.1; state = 3; }
+      }
+      else if (state == 3) { 
+        if (y + h >= 4 * crossTileSize) { y = 4 * crossTileSize - h; vy = 0; waitTimer = 15; state = 4; }
+      }
+      else if (state == 4) { 
+        waitTimer--; if (waitTimer <= 0) { crossGrid[4][8] = 0; crossGrid[4][9] = 0; vy = crossTileSize * 0.1; state = 5; }
+      }
+      else if (state == 5) { 
+        if (y > (crossROWS + 1) * crossTileSize) { runPhase = 1; resetCrossSim(); }
+      }
+    }
+  }
+
+  void draw() {
+    if (iFrames > 0 && (frameCount % 10 < 5)) return;
+    float w = crossTileSize * 0.7; float h = isSuper ? crossTileSize * 1.8 : crossTileSize * 0.9;
+    
+    pushMatrix();
+    if (!facingRight) { translate(x + w, y); scale(-1, 1); translate(-x, -y); }
+    noStroke(); fill(200, 0, 0); rect(x, y, w, h, 3);
+    fill(0, 0, 200); rect(x, y + h*0.4, w, h*0.4); 
+    fill(255, 200, 150); rect(x + w*0.3, y + h*0.1, w*0.7, h*0.3, 2); 
+    fill(200, 0, 0); rect(x, y, w, h*0.15, 2); 
+    popMatrix();
+  }
+}
+
+class Goomba {
+  float x, y;
+  boolean active = true;
+  Goomba(float sx, float sy) { x = sx; y = sy; }
+
+  void draw() {
+    if (!active) return;
+    float s = crossTileSize * 0.9; float offset = (crossTileSize - s) / 2;
+    float cx = x + offset; float cy = y + offset;
+    
+    noStroke(); fill(139, 69, 19); arc(cx + s/2, cy + s, s, s, PI, TWO_PI); 
+    fill(255, 200, 150); ellipse(cx + s/2, cy + s*0.7, s*0.7, s*0.4); 
+    fill(0); ellipse(cx + s*0.4, cy + s*0.7, s*0.1, s*0.2); ellipse(cx + s*0.6, cy + s*0.7, s*0.1, s*0.2); 
+    float footAnim = sin(frameCount * 0.2) * s*0.1;
+    ellipse(cx + s*0.2, cy + s, s*0.4, s*0.2 + footAnim); ellipse(cx + s*0.8, cy + s, s*0.4, s*0.2 - footAnim); 
+  }
+}
+
+class Mushroom {
+  float x, y, vx, vy;
+  boolean active = true;
+  Mushroom(float sx, float sy) {
+    x = sx; y = sy; vx = -crossTileSize * 0.05; vy = -crossTileSize * 0.20; 
+  }
+  void update() {
+    if (!active) return;
+    float s = crossTileSize * 0.9;
+    vy += crossTileSize * 0.02; y += vy;
+    if (vy > 0) {
+      if (y + s >= 2 * crossTileSize && x + s/2 >= 16 * crossTileSize) { y = 2 * crossTileSize - s; vy = 0; } 
+      else if (y + s >= 4 * crossTileSize) { y = 4 * crossTileSize - s; vy = 0; }
+    }
+    x += vx; 
+  }
+  void draw() {
+    if (!active) return;
+    float s = crossTileSize * 0.9; float offset = (crossTileSize - s) / 2;
+    float cx = x + offset; float cy = y + offset;
+    noStroke(); fill(255); rect(cx + s*0.25, cy + s*0.5, s*0.5, s*0.5, 3);
+    fill(210, 30, 30); arc(cx + s/2, cy + s*0.5, s, s, PI, TWO_PI);
+    fill(255); ellipse(cx + s*0.25, cy + s*0.25, s*0.2, s*0.2); 
+    ellipse(cx + s*0.75, cy + s*0.25, s*0.2, s*0.2); ellipse(cx + s*0.5, cy + s*0.1, s*0.25, s*0.15); 
+  }
+}
