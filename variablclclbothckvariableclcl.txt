@@ -1,0 +1,435 @@
+
+
+
+// Complete 3-SAT to Mario NP-Hardness Reduction Simulator
+// Combines Variable Gadgets, Clause Gadgets, Crossover Paths, and Start/Finish logic.
+// Dynamically scales and centers to fit entirely within any screen size.
+
+int[][] grid;
+int[][] originalGrid;
+int ROWS = 35;
+int COLS = 48;
+float tileSize;
+float offsetX, offsetY;
+
+// Templates for the gadgets
+int[][] varGadgetTemplate = {
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,1,1,1,1,0,0,0,0,0,0,1,1,1,1,0},
+  {0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0},
+  {0,0,0,0,1,0,0,1,1,0,0,1,0,0,0,0},
+  {0,0,0,0,1,0,1,0,0,1,0,1,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0}
+};
+
+int[][] clauseGadgetTemplate = {
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,1,2,1,2,1,0,0,0}, // 2 = Q-Block (Star)
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0},
+  {0,3,3,3,3,3,3,3,3,3,3,0,1,1,1,1,1,1,1,0}, // 3 = Firebars
+  {0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0},
+  {0,3,3,3,3,3,3,3,3,3,3,1,1,0,0,0,0,0,0,0}, 
+  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+};
+
+ArrayList<Bot> bots = new ArrayList<Bot>();
+
+void setup() {
+  fullScreen(); 
+  
+  // Calculate tileSize to ensure the grid fits entirely on screen, preserving aspect ratio
+  float tileWidth = width / (float)COLS;
+  float tileHeight = height / (float)ROWS;
+  tileSize = min(tileWidth, tileHeight);
+  
+  // Calculate offsets to center the simulation on the screen
+  offsetX = (width - (COLS * tileSize)) / 2;
+  offsetY = (height - (ROWS * tileSize)) / 2;
+  
+  // Initialize master grid
+  originalGrid = new int[ROWS][COLS];
+  for(int r = 0; r < ROWS; r++) {
+    for(int c = 0; c < COLS; c++) {
+      originalGrid[r][c] = 0;
+    }
+  }
+  
+  // Stamp the start gadget block
+  originalGrid[3][8] = 2; // Start Q-Block
+  for(int i = 6; i < 11; i++) originalGrid[6][i] = 1; // Start platform
+  
+  // Stamp the gadgets based on layout
+  stampGadget(varGadgetTemplate, 3, 11);   // Variable 1 (x) - Top Left
+  stampGadget(varGadgetTemplate, 3, 29);   // Variable 2 (y) - Top Right
+  stampGadget(clauseGadgetTemplate, 20, 11); // Clause 1 - Bottom Left
+  stampGadget(clauseGadgetTemplate, 20, 29); // Clause 2 - Bottom Right
+  
+  resetSim();
+}
+
+void resetSim() {
+  grid = new int[ROWS][COLS];
+  for(int r = 0; r < ROWS; r++) {
+    for(int c = 0; c < COLS; c++) {
+      grid[r][c] = originalGrid[r][c];
+    }
+  }
+  
+  bots.clear();
+  
+  // Variable Bots (Row Offset, Col Offset, Walk Direction: 1 = Right, -1 = Left)
+  bots.add(new VarBot(3, 11, 1));  // Top left bot (x = 1)
+  bots.add(new VarBot(3, 29, -1)); // Top right bot (y = 0)
+  
+  // Clause Bots (Row Offset, Col Offset)
+  bots.add(new ClauseBot(20, 11));  // Bottom left bot
+  bots.add(new ClauseBot(20, 29)); // Bottom right bot
+}
+
+void draw() {
+  background(255); // White background matching the document figures
+  
+  // Center the entire simulation dynamically
+  translate(offsetX, offsetY);
+  
+  drawConnections();
+  drawLevel();
+  drawLabels();
+  
+  for(Bot b : bots) {
+    b.update();
+    b.drawBot();
+  }
+}
+
+// ---------------- Helper Functions ----------------
+
+void stampGadget(int[][] template, int rOffset, int cOffset) {
+  for (int r = 0; r < template.length; r++) {
+    for (int c = 0; c < template[0].length; c++) {
+      if (template[r][c] != 0) {
+         originalGrid[r + rOffset][c + cOffset] = template[r][c];
+      }
+    }
+  }
+}
+
+boolean isSolid(float checkX, float checkY) {
+  int col = floor(checkX / tileSize);
+  int row = floor(checkY / tileSize);
+  if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return false;
+  return grid[row][col] == 1;
+}
+
+// ---------------- Rendering ----------------
+
+void drawLevel() {
+  float fireAngle = frameCount * 0.12;
+  for (int r = 0; r < ROWS; r++) {
+    for (int c = 0; c < COLS; c++) {
+      float x = c * tileSize;
+      float y = r * tileSize;
+      int v = grid[r][c];
+      
+      if (v == 1) { // Brick
+        fill(200, 100, 50); stroke(255); strokeWeight(1);
+        rect(x, y, tileSize, tileSize);
+      } else if (v == 2) { // Q-Block
+        fill(255, 200, 0); stroke(0); strokeWeight(1);
+        rect(x, y, tileSize, tileSize);
+        fill(0); textAlign(CENTER, CENTER); textSize(tileSize * 0.8);
+        text("?", x + tileSize/2, y + tileSize/2 - 2);
+      } else if (v == 4) { // Used Block
+        fill(150, 100, 50); stroke(0); strokeWeight(1);
+        rect(x, y, tileSize, tileSize);
+      } else if (v == 3) { // Firebar
+        fill(200, 100, 50); stroke(255);
+        rect(x, y, tileSize, tileSize);
+        pushMatrix();
+        translate(x + tileSize/2, y + tileSize/2);
+        rotate(fireAngle);
+        noStroke();
+        for(int i = 1; i <= 3; i++) {
+          fill(255, 150, 0, 150); circle(i * tileSize * 0.7, 0, tileSize * 0.6);
+          fill(255, 50, 0); circle(i * tileSize * 0.7, 0, tileSize * 0.35);
+        }
+        popMatrix();
+      }
+    }
+  }
+}
+
+void drawConnections() {
+  stroke(0); strokeWeight(1.5); noFill();
+  
+  // Start to Variables
+  beginShape();
+  vertex(9 * tileSize, 6 * tileSize);
+  vertex(19 * tileSize, 6 * tileSize);
+  vertex(19 * tileSize, 10 * tileSize); // Drops into Var 1
+  endShape();
+  
+  beginShape();
+  vertex(21 * tileSize, 6 * tileSize);
+  vertex(37 * tileSize, 6 * tileSize);
+  vertex(37 * tileSize, 10 * tileSize); // Drops into Var 2
+  endShape();
+
+  // Bottom of Variables
+  float v1x = 16.5 * tileSize; float v1nx = 21.5 * tileSize; 
+  float v2y = 34.5 * tileSize; float v2ny = 39.5 * tileSize; 
+  float varBotY = 15 * tileSize;
+  
+  // Top of Clauses
+  float clauseTopY = 23 * tileSize;
+  float c1p1 = 24.5 * tileSize; float c1p2 = 26.5 * tileSize; 
+  float c2p1 = 42.5 * tileSize; float c2p2 = 44.5 * tileSize; 
+  
+  // Crossover Logic Lines mapped identically to layout
+  // x crosses over to right clause
+  drawLineDiagonal(v1x, varBotY, c2p1, clauseTopY);
+  // ¬x connects to left clause
+  drawLineDiagonal(v1nx, varBotY, c1p1, clauseTopY);
+  // y connects to left clause (crosses ¬x)
+  drawLineDiagonal(v2y, varBotY, c1p2, clauseTopY);
+  // ¬y connects to right clause straight down
+  beginShape();
+  vertex(v2ny, varBotY);
+  vertex(v2ny, varBotY + 2 * tileSize);
+  vertex(c2p2, varBotY + 2 * tileSize);
+  vertex(c2p2, clauseTopY);
+  endShape();
+  
+  // Clause routing back
+  beginShape();
+  vertex(48 * tileSize, 32 * tileSize);
+  vertex(48 * tileSize, 26 * tileSize);
+  vertex(44 * tileSize, 26 * tileSize);
+  endShape();
+}
+
+void drawLineDiagonal(float x1, float y1, float x2, float y2) {
+  beginShape();
+  vertex(x1, y1);
+  vertex(x1, y1 + tileSize);
+  vertex(x2, y2 - tileSize);
+  vertex(x2, y2);
+  endShape();
+}
+
+void drawLabels() {
+  fill(0); textSize(tileSize * 0.6); textAlign(CENTER, BOTTOM);
+  
+  // Start
+  text("start", 9 * tileSize, 5.5 * tileSize);
+  
+  // Variables
+  float yTop = 10.5 * tileSize;
+  text("1, x", 16.5 * tileSize, yTop); text("↓", 16.5 * tileSize, yTop + tileSize);
+  text("0, ¬x", 21.5 * tileSize, yTop); text("↓", 21.5 * tileSize, yTop + tileSize);
+  
+  text("1, y", 34.5 * tileSize, yTop); text("↓", 34.5 * tileSize, yTop + tileSize);
+  text("0, ¬y", 39.5 * tileSize, yTop); text("↓", 39.5 * tileSize, yTop + tileSize);
+
+  // Finish Block Line
+  fill(255); stroke(0); strokeWeight(2);
+  rect(6 * tileSize, 29 * tileSize, 4 * tileSize, 2.5 * tileSize);
+  fill(0); textAlign(CENTER, CENTER); textSize(tileSize * 0.7);
+  text("finish", 8 * tileSize, 30.25 * tileSize);
+}
+
+// ---------------- Classes ----------------
+
+abstract class Bot {
+  float px, py, vx, vy, pSize;
+  Bot() { pSize = tileSize * 0.7; }
+  abstract void update();
+  abstract void drawBot();
+}
+
+class VarBot extends Bot {
+  float startX, startY;
+  float dir; 
+  
+  VarBot(int rOffset, int cOffset, float startDir) {
+    super();
+    startX = (cOffset + 7.5) * tileSize; 
+    startY = (rOffset + 2) * tileSize;
+    dir = startDir;
+    reset();
+  }
+  
+  void reset() {
+    px = startX; py = startY;
+    vx = tileSize * 0.05 * dir; 
+    vy = 0;
+  }
+  
+  void update() {
+    vy += tileSize * 0.02; // Gravity
+    
+    // Y-Collision
+    py += vy;
+    if (vy > 0) {
+      if (isSolid(px, py + pSize) || isSolid(px + pSize, py + pSize)) {
+        py = floor((py + pSize) / tileSize) * tileSize - pSize;
+        vy = 0;
+      }
+    }
+    
+    // X-Collision (Walking)
+    px += vx;
+    if (vx > 0 && (isSolid(px + pSize, py) || isSolid(px + pSize, py + pSize * 0.9))) {
+      px = floor((px + pSize) / tileSize) * tileSize - pSize;
+    } else if (vx < 0 && (isSolid(px, py) || isSolid(px, py + pSize * 0.9))) {
+      px = ceil(px / tileSize) * tileSize;
+    }
+    
+    // Loop when fallen through bottom shaft
+    if (py > 16 * tileSize) reset();
+  }
+  
+  void drawBot() {
+    fill(255, 0, 0); noStroke();
+    rect(px, py, pSize, pSize);
+    fill(0, 0, 255); rect(px, py + pSize/2, pSize, pSize/2);
+    
+    fill(255);
+    if (vx < 0) {
+      rect(px + pSize*0.1, py + pSize*0.2, pSize*0.15, pSize*0.15);
+      rect(px + pSize*0.3, py + pSize*0.2, pSize*0.15, pSize*0.15);
+    } else {
+      rect(px + pSize*0.6, py + pSize*0.2, pSize*0.15, pSize*0.15);
+      rect(px + pSize*0.8, py + pSize*0.2, pSize*0.15, pSize*0.15);
+    }
+  }
+}
+
+class ClauseBot extends Bot {
+  int rOffset, cOffset;
+  int botState = 0;
+  boolean hasStar = false, starActive = false;
+  float sx, sy, svx, svy;
+  int sequenceTimer = 0, waitTimer = 0;
+  int targetCol, targetRow, pitRow, fireRow, jumpWallCol;
+
+  ClauseBot(int ro, int co) {
+    super();
+    rOffset = ro; cOffset = co;
+    targetCol = cOffset + 13; targetRow = rOffset + 3;
+    pitRow = rOffset + 9; fireRow = rOffset + 9;
+    jumpWallCol = cOffset + 11;
+    reset();
+  }
+
+  void reset() {
+    px = targetCol * tileSize + (tileSize - pSize) / 2;
+    py = pitRow * tileSize - pSize;
+    vx = 0; vy = 0;
+    botState = 0; hasStar = false; starActive = false;
+    sequenceTimer = 0; waitTimer = 0;
+
+    // Restore Q-blocks
+    grid[rOffset + 3][cOffset + 13] = originalGrid[rOffset + 3][cOffset + 13];
+    grid[rOffset + 3][cOffset + 15] = originalGrid[rOffset + 3][cOffset + 15];
+  }
+
+  void update() {
+    float gravity = tileSize * 0.015;
+    sequenceTimer++;
+
+    if (botState > 0) { vy += gravity; py += vy; px += vx; }
+
+    if (botState == 0 && sequenceTimer == 60) { botState = 1; vy = -tileSize * 0.42; }
+
+    if (botState == 1 && vy < 0) {
+      int headRow = floor(py / tileSize);
+      int headCol = floor((px + pSize/2) / tileSize);
+      
+      if (headRow == targetRow && grid[headRow][headCol] == 2) {
+        grid[headRow][headCol] = 4; // Used Block
+        py = (headRow + 1) * tileSize; vy = 0; botState = 2;
+        starActive = true;
+        sx = headCol * tileSize + (tileSize * 0.1); sy = headRow * tileSize;
+        svx = 0; svy = 0;
+      }
+    }
+
+    if (botState == 2 && vy > 0 && py + pSize >= pitRow * tileSize) {
+      py = pitRow * tileSize - pSize; vy = 0;
+    }
+
+    // Catching the Invincibility Star
+    if (starActive) {
+      svy += gravity; sy += svy; sx += svx;
+      if (svy > 0 && sy + tileSize >= pitRow * tileSize) {
+        sy = pitRow * tileSize - tileSize; svy = -tileSize * 0.18;
+      }
+      if (botState == 2 && dist(px + pSize/2, py + pSize/2, sx + tileSize/2, sy + tileSize/2) < tileSize) {
+        hasStar = true; starActive = false; botState = 3;
+        vy = -tileSize * 0.38; vx = -tileSize * 0.08;
+      }
+    }
+
+    // Safely running over the firebars
+    if ((botState == 3 || botState == 4 || botState == 5) && px < jumpWallCol * tileSize) {
+      if (py + pSize >= fireRow * tileSize) {
+        py = fireRow * tileSize - pSize; vy = 0;
+        if (botState == 3) { botState = 4; vx = 0; waitTimer = 60; }
+      }
+    }
+
+    if (botState == 4) {
+      waitTimer--;
+      if (waitTimer <= 0) { botState = 5; vx = -tileSize * 0.05; }
+    }
+
+    // Reset loop
+    if (px < cOffset * tileSize - tileSize * 2) reset();
+  }
+
+  void drawBot() {
+    if (starActive) {
+      pushMatrix(); translate(sx + tileSize/2, sy + tileSize/2); rotate(frameCount * 0.1);
+      colorMode(HSB, 255); fill((frameCount * 15) % 255, 255, 255); colorMode(RGB, 255);
+      noStroke();
+      beginShape();
+      for (int i = 0; i < 5; i++) {
+        float a = TWO_PI * i / 5 - HALF_PI;
+        float a2 = TWO_PI * (i + 0.5) / 5 - HALF_PI;
+        vertex(cos(a) * tileSize * 0.4, sin(a) * tileSize * 0.4);
+        vertex(cos(a2) * tileSize * 0.15, sin(a2) * tileSize * 0.15);
+      }
+      endShape(CLOSE); popMatrix();
+    }
+
+    if (hasStar) {
+      colorMode(HSB, 255); fill((frameCount * 25) % 255, 200, 255); colorMode(RGB, 255);
+    } else { fill(255, 0, 0); }
+    noStroke(); rect(px, py, pSize, pSize);
+    
+    if (!hasStar) fill(0, 0, 255);
+    rect(px, py + (pSize/2), pSize, pSize/2);
+    
+    fill(255);
+    if (vx <= 0) {
+      rect(px + pSize * 0.1, py + pSize * 0.2, pSize * 0.15, pSize * 0.15);
+      rect(px + pSize * 0.3, py + pSize * 0.2, pSize * 0.15, pSize * 0.15);
+    } else {
+      rect(px + pSize * 0.6, py + pSize * 0.2, pSize * 0.15, pSize * 0.15);
+      rect(px + pSize * 0.8, py + pSize * 0.2, pSize * 0.15, pSize * 0.15);
+    }
+  }
+}
