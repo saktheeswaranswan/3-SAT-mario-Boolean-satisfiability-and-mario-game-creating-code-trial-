@@ -1,0 +1,463 @@
+Cross over correctly give mario sat 
+
+// Super Mario NP-Hardness Crossover Gadget Simulator
+// Autoplays TWO phases to perfectly demonstrate the custom return crossover logic.
+// Yellow = Breakable Bricks | Chocolate = Unbreakable Platforms
+
+int ROWS = 14;
+int COLS = 22;
+
+// 1 = Chocolate (Unbreakable), 2 = Q-Block, 3 = Yellow (Breakable), 0 = Empty, 4 = Used Block
+int[][] originalGrid = {
+  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}, // 0: Sky bounds
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1}, // 1: Jump clearance
+  {1,0,0,0,0,0,1,0,3,3,3,3,3,3,3,0,2,3,3,3,3,1}, // 2: Wall(6). UPPER Bridge(8,9). Yellow Ceiling(10-14). Gap(15). Q-Block(16). Exit Wall(17-20)
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,1}, // 3: Empty path for Small Mario. Exit wall bottom block(20).
+  {1,1,1,1,1,1,1,0,3,3,0,1,1,1,1,1,1,1,1,1,1,1}, // 4: Floor(0-6). LOWER Bridge(8,9). Floor(11-21).
+  {1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1}, // 5: Dirt fill / Shaft
+  {1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1}, // 6: Shaft continues
+  {1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1}, // 7: Solid ground around shaft
+  {1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1}, // 8: Shaft
+  {1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1}, // 9: Shaft
+  {1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1}, // 10: Shaft
+  {1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1}, // 11: Shaft
+  {1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1}, // 12: Shaft
+  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}  // 13: Bottom bounds
+};
+
+int[][] grid;
+float tileSize;
+float offsetX, offsetY;
+int runPhase = 1; // 1 = Horizontal Path (Custom Return), 2 = Vertical Path
+
+Mario mario;
+Goomba goomba;
+Mushroom mushroom;
+
+void setup() {
+  size(1280, 720); // 16:9 standard
+  tileSize = min(width / (float)COLS, (height - 60) / (float)ROWS);
+  offsetX = (width - (tileSize * COLS)) / 2;
+  offsetY = ((height - 60) - (tileSize * ROWS)) / 2 + 60;
+  resetSim();
+}
+
+void resetSim() {
+  grid = new int[ROWS][COLS];
+  for (int r = 0; r < ROWS; r++) {
+    for (int c = 0; c < COLS; c++) {
+      grid[r][c] = originalGrid[r][c];
+    }
+  }
+  mario = new Mario(1.5 * tileSize, 2.2 * tileSize);
+  goomba = new Goomba(4.5 * tileSize, 3.1 * tileSize);
+  mushroom = null;
+}
+
+void draw() {
+  background(92, 148, 252); // Classic Mario Sky Blue
+
+  pushMatrix();
+  translate(offsetX, offsetY);
+
+  drawLevel();
+
+  if (goomba != null) goomba.draw();
+  if (mushroom != null) {
+    mushroom.update();
+    mushroom.draw();
+  }
+
+  mario.update();
+  mario.draw();
+
+  popMatrix();
+  drawOverlay();
+}
+
+void drawLevel() {
+  for (int r = 0; r < ROWS; r++) {
+    for (int c = 0; c < COLS; c++) {
+      float x = c * tileSize;
+      float y = r * tileSize;
+      int v = grid[r][c];
+      
+      if (v == 1) { 
+        // CHOCOLATE BLOCK (Unbreakable) - 3D Projected look
+        fill(180, 80, 30); 
+        noStroke();
+        rect(x, y, tileSize, tileSize);
+        
+        fill(220, 130, 70);
+        beginShape(); vertex(x, y); vertex(x + tileSize, y); vertex(x + tileSize*0.8, y + tileSize*0.2); vertex(x + tileSize*0.2, y + tileSize*0.2); endShape(CLOSE);
+        beginShape(); vertex(x, y); vertex(x + tileSize*0.2, y + tileSize*0.2); vertex(x + tileSize*0.2, y + tileSize*0.8); vertex(x, y + tileSize); endShape(CLOSE);
+        
+        fill(100, 40, 10);
+        beginShape(); vertex(x, y + tileSize); vertex(x + tileSize, y + tileSize); vertex(x + tileSize*0.8, y + tileSize*0.8); vertex(x + tileSize*0.2, y + tileSize*0.8); endShape(CLOSE);
+        beginShape(); vertex(x + tileSize, y); vertex(x + tileSize*0.8, y + tileSize*0.2); vertex(x + tileSize*0.8, y + tileSize*0.8); vertex(x + tileSize, y + tileSize); endShape(CLOSE);
+        
+        fill(150, 60, 20); 
+        rect(x + tileSize*0.2, y + tileSize*0.2, tileSize*0.6, tileSize*0.6);
+      } 
+      else if (v == 3) {
+        // YELLOW BLOCK (Breakable Bricks)
+        fill(250, 210, 0); stroke(200, 150, 0); strokeWeight(1.5);
+        rect(x, y, tileSize, tileSize);
+        stroke(180, 120, 0);
+        line(x, y + tileSize/2, x + tileSize, y + tileSize/2);
+        line(x + tileSize/2, y, x + tileSize/2, y + tileSize/2);
+        line(x + tileSize/4, y + tileSize/2, x + tileSize/4, y + tileSize);
+        line(x + tileSize*0.75, y + tileSize/2, x + tileSize*0.75, y + tileSize);
+      } 
+      else if (v == 2) { 
+        // Q-BLOCK (Colored Redish as requested by image indication, styled like Q-Block)
+        fill(220, 50, 50); stroke(0); strokeWeight(1.5);
+        rect(x, y, tileSize, tileSize);
+        fill(255); textAlign(CENTER, CENTER); textSize(tileSize * 0.7);
+        text("?", x + tileSize/2, y + tileSize/2 - 2);
+      } 
+      else if (v == 4) { 
+        // USED BLOCK
+        fill(140, 90, 60); stroke(0); strokeWeight(1.5);
+        rect(x, y, tileSize, tileSize);
+        fill(0, 50); rect(x + tileSize*0.1, y + tileSize*0.1, tileSize*0.8, tileSize*0.8);
+      }
+    }
+  }
+}
+
+void drawOverlay() {
+  fill(0, 0, 0, 200);
+  noStroke();
+  rect(0, 0, width, 60);
+  fill(255);
+  textSize(18);
+  textAlign(CENTER, CENTER);
+  if (runPhase == 1) {
+    text("PHASE 1 (Custom Return): Eats gap mushroom, runs right, breaks wall, climbs onto roof, smashes down shaft.", width/2, 30);
+  } else {
+    text("PHASE 2 (Vertical): Jumps Goomba, stays Big, lands on upper yellow bridge, smashes consecutively down the shaft.", width/2, 30);
+  }
+}
+
+// ---------------- Entities ----------------
+
+class Mario {
+  float x, y, vx, vy;
+  boolean isSuper = true;
+  int state = 0;
+  int iFrames = 0;
+  int waitTimer = 0;
+  boolean facingRight = true;
+
+  Mario(float startX, float startY) {
+    x = startX;
+    y = startY;
+    vx = tileSize * 0.055;
+    vy = 0;
+  }
+
+  void update() {
+    float w = tileSize * 0.7;
+    float h = isSuper ? tileSize * 1.8 : tileSize * 0.9;
+    
+    if (iFrames > 0) iFrames--;
+    
+    // Apply Physics
+    x += vx;
+    vy += tileSize * 0.02; // Gravity
+    y += vy;
+    
+    if (vx > 0) facingRight = true;
+    if (vx < 0) facingRight = false;
+    
+    // Phase 1 Contextual Floor Collisions
+    if (runPhase == 1) {
+      // Main Floor (Row 4) collision for initial walk and gap fall
+      if (state <= 6 && y + h >= 4 * tileSize && vy > 0) {
+        y = 4 * tileSize - h;
+        vy = 0;
+      }
+      // Roof (Row 2) collision for elevation walk
+      if ((state == 7 || state == 8) && vy > 0 && y + h >= 2 * tileSize && x < 19 * tileSize) {
+        y = 2 * tileSize - h;
+        vy = 0;
+      }
+    } 
+    // Phase 2 Contextual Floor Collisions
+    else if (runPhase == 2) {
+      if (state == 0 && y + h >= 4 * tileSize && vy > 0) {
+         y = 4 * tileSize - h;
+         vy = 0;
+      }
+    }
+    
+    // --- Cinematic State Machine for Custom Choreography ---
+    if (runPhase == 1) {
+      if (state == 0) { // Walk to Goomba
+        if (goomba != null && goomba.active && abs((x + w/2) - (goomba.x + tileSize*0.5)) < tileSize * 0.6) {
+          goomba.active = false;
+          isSuper = false; // Intentionally take damage
+          y += tileSize * 0.9; 
+          iFrames = 60; 
+          vy = -tileSize * 0.2; // Knockback
+          state = 1;
+        }
+      } 
+      else if (state == 1) { // Walk right to Q-Block 
+        vx = tileSize * 0.055;
+        if (x >= 16.15 * tileSize) { 
+          x = 16.15 * tileSize;
+          vx = 0;
+          vy = -tileSize * 0.48; // Jump straight up for Q-block
+          state = 2;
+        }
+      } 
+      else if (state == 2) { // Hit Q-Block
+        if (vy >= 0 && y <= 3.0 * tileSize) { 
+          int headRow = 2;
+          int headCol = 16;
+          if (grid[headRow][headCol] == 2) {
+            grid[headRow][headCol] = 4; // Used Block
+            mushroom = new Mushroom(headCol * tileSize, 1 * tileSize);
+            state = 3;
+          }
+        }
+      } 
+      else if (state == 3) { // Step left slightly to catch Mushroom dropping from gap
+        vx = -tileSize * 0.04;
+        if (x <= 15.1 * tileSize) {
+           x = 15.1 * tileSize;
+           vx = 0;
+           facingRight = true;
+        }
+        if (mushroom != null && mushroom.active) {
+          if (dist(x + w/2, y + h/2, mushroom.x + tileSize/2, mushroom.y + tileSize/2) < tileSize) {
+            mushroom.active = false;
+            isSuper = true; // Grow big!
+            y -= tileSize * 0.9;
+            waitTimer = 15;
+            state = 4;
+          }
+        }
+      } 
+      else if (state == 4) { // Grown Big, Walk Right to the blocking bricks
+        waitTimer--;
+        if (waitTimer <= 0) {
+          vx = tileSize * 0.06;
+          if (x >= 19.3 * tileSize && grid[2][20] == 3) {
+            vx = 0;
+            grid[2][20] = 0; // Break top yellow brick
+            grid[3][20] = 0; // Break bottom yellow brick
+            vy = -tileSize * 0.4; // Hop up from breaking
+            state = 5;
+          }
+        }
+      }
+      else if (state == 5) { // Land on floor, prepare for massive jump out of the hole
+        if (y + h >= 4 * tileSize) {
+          y = 4 * tileSize - h;
+          vy = -tileSize * 0.70; // BIG Jump to get on top of the roof!
+          vx = -tileSize * 0.07; // Drift left to land on the solid roof
+          state = 6;
+        }
+      }
+      else if (state == 6) { // Airborne, landing on the roof
+        if (vy >= 0 && y + h >= 2 * tileSize && x < 19.0 * tileSize) {
+          y = 2 * tileSize - h; // Secure landing on the roof
+          vy = 0;
+          vx = -tileSize * 0.09; // Run leftwards across the top of the structure
+          state = 7;
+        }
+      }
+      else if (state == 7) { // Run left on the roof towards the shaft
+        y = 2 * tileSize - h; // Keep locked to roof
+        if (x <= 8.65 * tileSize) { 
+          x = 8.65 * tileSize;
+          vx = 0; 
+          facingRight = true;
+          waitTimer = 15; // Pause over the shaft
+          state = 8;
+        }
+      }
+      else if (state == 8) { // Smash Upper Bridge
+        waitTimer--;
+        if (waitTimer <= 0) {
+          grid[2][8] = 0; grid[2][9] = 0; // Destroy Upper Bricks
+          vy = tileSize * 0.1; // Begin falling
+          state = 9;
+        }
+      }
+      else if (state == 9) { // Fall perfectly onto the Lower Bridge
+        if (y + h >= 4 * tileSize) {
+          y = 4 * tileSize - h; 
+          vy = 0;
+          waitTimer = 15;
+          state = 10;
+        }
+      }
+      else if (state == 10) { // Smash Lower Bridge
+        waitTimer--;
+        if (waitTimer <= 0) {
+          grid[4][8] = 0; grid[4][9] = 0; // Destroy Lower Bricks
+          vy = tileSize * 0.1; // Fall down the rest of the shaft
+          state = 11;
+        }
+      }
+      else if (state == 11) { // Free-falling entirely down the vertical shaft
+        if (y > (ROWS + 1) * tileSize) {
+          runPhase = 2; // Transition to Phase 2
+          resetSim();
+        }
+      }
+    } 
+    else if (runPhase == 2) {
+      // PHASE 2: Standard Vertical Crossover logic - jump Goomba, break bridges consecutively, fall.
+      if (state == 0) { 
+        vx = tileSize * 0.12; 
+        if (x >= 2.3 * tileSize) { 
+          vy = -tileSize * 0.40; // Precision jump over Goomba and left wall
+          state = 1;
+        }
+      } 
+      else if (state == 1) { // Airborne
+        if (vy > 0 && y + h >= 2 * tileSize && x >= 7.0 * tileSize) { 
+           y = 2 * tileSize - h;
+           vy = 0;
+           vx = 0; // Land safely on the UPPER bridge
+           x = 8.65 * tileSize; // Center exactly over the shaft
+           waitTimer = 15; 
+           state = 2;
+        }
+      }
+      else if (state == 2) { // Smash Upper Bridge
+        waitTimer--;
+        if (waitTimer <= 0) {
+          grid[2][8] = 0; grid[2][9] = 0; 
+          vy = tileSize * 0.1; 
+          state = 3;
+        }
+      }
+      else if (state == 3) { // Fall and hit Lower Bridge
+        if (y + h >= 4 * tileSize) {
+          y = 4 * tileSize - h;
+          vy = 0;
+          waitTimer = 15;
+          state = 4;
+        }
+      }
+      else if (state == 4) { // Smash Lower Bridge
+        waitTimer--;
+        if (waitTimer <= 0) {
+          grid[4][8] = 0; grid[4][9] = 0; 
+          vy = tileSize * 0.1; 
+          state = 5;
+        }
+      }
+      else if (state == 5) { // Fall perfectly down the shaft
+        if (y > (ROWS + 1) * tileSize) {
+          runPhase = 1; // Loop sim
+          resetSim();
+        }
+      }
+    }
+  }
+
+  void draw() {
+    if (iFrames > 0 && (frameCount % 10 < 5)) return;
+    
+    float w = tileSize * 0.7;
+    float h = isSuper ? tileSize * 1.8 : tileSize * 0.9;
+    
+    pushMatrix();
+    // Render flip for changing directions
+    if (!facingRight) {
+      translate(x + w, y);
+      scale(-1, 1);
+      translate(-x, -y);
+    }
+    
+    noStroke();
+    fill(200, 0, 0); rect(x, y, w, h, 3); // Overalls
+    fill(0, 0, 200); rect(x, y + h*0.4, w, h*0.4); // Shirt
+    fill(255, 200, 150); rect(x + w*0.3, y + h*0.1, w*0.7, h*0.3, 2); // Face
+    fill(200, 0, 0); rect(x, y, w, h*0.15, 2); // Hat 
+    
+    popMatrix();
+  }
+}
+
+class Goomba {
+  float x, y;
+  boolean active = true;
+  
+  Goomba(float sx, float sy) {
+    x = sx;
+    y = sy;
+  }
+
+  void draw() {
+    if (!active) return;
+    float s = tileSize * 0.9;
+    float offset = (tileSize - s) / 2;
+    float cx = x + offset;
+    float cy = y + offset;
+    
+    noStroke();
+    fill(139, 69, 19); arc(cx + s/2, cy + s, s, s, PI, TWO_PI); // Body
+    fill(255, 200, 150); ellipse(cx + s/2, cy + s*0.7, s*0.7, s*0.4); // Face
+    fill(0); 
+    ellipse(cx + s*0.4, cy + s*0.7, s*0.1, s*0.2); 
+    ellipse(cx + s*0.6, cy + s*0.7, s*0.1, s*0.2); 
+    
+    float footAnim = sin(frameCount * 0.2) * s*0.1;
+    ellipse(cx + s*0.2, cy + s, s*0.4, s*0.2 + footAnim); 
+    ellipse(cx + s*0.8, cy + s, s*0.4, s*0.2 - footAnim); 
+  }
+}
+
+class Mushroom {
+  float x, y, vx, vy;
+  boolean active = true;
+  
+  Mushroom(float sx, float sy) {
+    x = sx;
+    y = sy;
+    vx = -tileSize * 0.05; // Spawns and moves left towards the gap
+    vy = -tileSize * 0.20; // Pops out of the block
+  }
+
+  void update() {
+    if (!active) return;
+    float s = tileSize * 0.9;
+    vy += tileSize * 0.02; // Gravity
+    y += vy;
+    
+    if (vy > 0) {
+      if (y + s >= 2 * tileSize && x + s/2 >= 16 * tileSize) {
+         y = 2 * tileSize - s; 
+         vy = 0; // Temporarily slide on top of Q-block
+      } else if (y + s >= 4 * tileSize) {
+         y = 4 * tileSize - s; 
+         vy = 0; // Fall through gap to main floor
+      }
+    }
+    x += vx; 
+  }
+
+  void draw() {
+    if (!active) return;
+    float s = tileSize * 0.9;
+    float offset = (tileSize - s) / 2;
+    float cx = x + offset;
+    float cy = y + offset;
+    
+    noStroke();
+    fill(255); rect(cx + s*0.25, cy + s*0.5, s*0.5, s*0.5, 3);
+    fill(210, 30, 30); arc(cx + s/2, cy + s*0.5, s, s, PI, TWO_PI);
+    fill(255); 
+    ellipse(cx + s*0.25, cy + s*0.25, s*0.2, s*0.2); 
+    ellipse(cx + s*0.75, cy + s*0.25, s*0.2, s*0.2); 
+    ellipse(cx + s*0.5, cy + s*0.1, s*0.25, s*0.15); 
+  }
+}
