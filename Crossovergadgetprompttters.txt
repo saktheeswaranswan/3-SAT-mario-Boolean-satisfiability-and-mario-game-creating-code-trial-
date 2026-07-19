@@ -1,0 +1,325 @@
+Super Mario Bros. NP-Hardness Reduction – Complete Crossover Gadget Description (Image Creation Prompt / Environment Specification)
+
+The crossover gadget is one of the most important constructions in the NP-hardness proof for Super Mario Bros. Its purpose is to allow two independent paths to cross each other without allowing Mario to switch from one path to the other. This ensures that the logical choices made earlier in the reduction remain permanent and cannot be bypassed. The gadget exploits one of Mario's defining mechanics—his ability to change between Big Mario and Small Mario—together with brick-breaking, one-tile passages, enemy damage, question blocks, mushrooms, gravity, and one-way traversal.
+
+The scene should be presented as a single ultra-wide panoramic collage, similar to a platform game storyboard. Every stage of the gadget is frozen at the exact instant that best communicates its purpose. The viewer should immediately understand the complete traversal simply by following the numbered sequence and directional arrows. The gadget is read chronologically from left to right in the storyboard, although the gameplay itself contains both leftward and rightward movement. Every frame depicts the same environment while showing Mario at different positions, making the overall image resemble a technical blueprint explaining the crossover gadget.
+
+The environment uses the original Super Mario Bros. visual style. Brown brick blocks form solid platforms and walls. Underground-style textures define the maze-like corridors. Question blocks remain bright yellow with question marks clearly visible. Standard brown breakable bricks are used wherever Big Mario is required to smash through. Empty brick spaces indicate previously broken blocks only in later stages of the sequence. The background remains clean so the structure of the gadget is obvious.
+
+At the beginning of the sequence, Mario already possesses a mushroom obtained from an earlier mandatory gadget. He is therefore Big Mario when entering the crossover gadget. This is essential because several later actions require his ability to break bricks. The gadget assumes this initial condition exactly as in the NP-hardness construction.
+
+
+---
+
+Stage 1 – Big Mario Enters from the Left
+
+Mario enters the gadget from the far left while already in his large form. A narrow entrance corridor opens into the crossover structure. Directly ahead lies an elevated upper passage. The lower passage is inaccessible from the entrance.
+
+The upper corridor is wide enough for Big Mario and leads toward the right. Below, separated by thick brick walls, another corridor represents the independent crossing path. At this point there is absolutely no connection between the two paths.
+
+The image should clearly communicate that Mario has only one legal direction: move right along the upper corridor.
+
+A caption beneath the frame reads:
+
+"Big Mario enters the crossover gadget from the left entrance."
+
+
+---
+
+Stage 2 – Moving Along the Upper Corridor
+
+Mario walks to the right across the upper passage.
+
+The corridor gently zigzags through solid brick walls, preventing any possibility of falling into the lower corridor.
+
+Far ahead, a yellow question block is visible inside a small chamber.
+
+A blue directional arrow above Mario indicates movement toward the right.
+
+The caption explains:
+
+"Mario proceeds along the upper path toward the question block chamber."
+
+
+---
+
+Stage 3 – Hitting the Question Block
+
+Mario jumps upward beneath the question block.
+
+At the exact instant of impact, the block changes to its activated appearance.
+
+The mushroom begins emerging from the block.
+
+The mushroom remains trapped on the upper platform where Mario can immediately collect it.
+
+The caption states:
+
+"Mario activates the question block, releasing a Super Mushroom."
+
+
+---
+
+Stage 4 – Mushroom Appears
+
+The mushroom has completely emerged from the question block.
+
+It slides slowly along the platform.
+
+Mario stands directly beneath it preparing to collect it.
+
+The environment remains unchanged.
+
+Caption:
+
+"The Super Mushroom appears and begins moving along the upper platform."
+
+
+---
+
+Stage 5 – Collecting the Mushroom
+
+Mario collects the mushroom.
+
+Although he was already Big Mario, this guarantees that if he later loses his power-up inside the gadget, another mushroom will eventually allow him to regain his large form.
+
+A sparkle effect surrounds Mario.
+
+Caption:
+
+"Mario secures the mushroom source before continuing."
+
+
+---
+
+Stage 6 – Intentional Damage
+
+Ahead waits a Goomba walking back and forth inside a confined section of corridor.
+
+Mario deliberately collides with the Goomba.
+
+Instead of avoiding the enemy, the player intentionally takes damage.
+
+Immediately Mario shrinks into Small Mario.
+
+The Goomba survives and continues walking.
+
+The caption reads:
+
+"Mario intentionally takes damage, shrinking into Small Mario."
+
+This transformation is the key mechanic controlling the crossover.
+
+
+---
+
+Stage 7 – Small Mario Drops to the Lower Path
+
+Immediately after shrinking, Small Mario reaches a narrow one-tile opening.
+
+Big Mario could never pass through this gap.
+
+Only Small Mario fits.
+
+He drops vertically through the opening.
+
+Gravity carries him onto the lower corridor.
+
+The upper route is now permanently inaccessible.
+
+Caption:
+
+"Only Small Mario fits through the narrow passage, reaching the lower path."
+
+
+---
+
+Stage 8 – Traveling to the Far Left
+
+Now inside the lower corridor, Mario travels all the way toward the far left.
+
+A long blue arrow stretches across the bottom passage showing continuous movement from right to left.
+
+Brick walls completely isolate this lower corridor from the upper one.
+
+Mario cannot climb back upward.
+
+The caption states:
+
+"Small Mario traverses the entire lower corridor toward the far left end."
+
+This long traversal emphasizes that Mario is now committed to the second route.
+
+
+---
+
+Stage 9 – Reaching the Lower Left Chamber
+
+At the far left, a vertical shaft allows Mario to climb upward.
+
+He ascends into another chamber positioned beneath the earlier question-block room.
+
+Above him sits another yellow question block.
+
+The geometry ensures this chamber can only be reached after traveling the full lower corridor.
+
+Caption:
+
+"Mario reaches the left recovery chamber."
+
+
+---
+
+Stage 10 – Activating the Second Question Block
+
+Small Mario jumps upward.
+
+His head strikes the second question block.
+
+Another mushroom begins emerging.
+
+The timing clearly shows the mushroom just appearing.
+
+Caption:
+
+"Mario activates the recovery mushroom."
+
+
+---
+
+Stage 11 – Regaining Big Mario
+
+Mario collects the mushroom.
+
+He immediately grows back into Big Mario.
+
+This transformation is necessary because the remainder of the crossover requires brick-breaking.
+
+Sparkles surround Mario.
+
+Caption:
+
+"Mario becomes Big Mario once again."
+
+
+---
+
+Stage 12 – Returning Toward the Right
+
+Now restored to full size, Mario exits the recovery chamber.
+
+He proceeds along a completely different corridor.
+
+This time he travels from left to right.
+
+A large blue arrow indicates the new direction.
+
+The route gradually rises toward the central crossover region.
+
+Caption:
+
+"Big Mario now follows the independent return corridor."
+
+
+---
+
+Stage 13 – Breaking the Brick Barrier
+
+Ahead stands a solid wall of ordinary brown bricks.
+
+Only Big Mario can destroy these blocks.
+
+Mario jumps upward.
+
+The exact instant shows bricks shattering into fragments.
+
+Broken pieces scatter outward.
+
+Small Mario could never perform this action.
+
+Caption:
+
+"Only Big Mario can break the brick barrier."
+
+
+---
+
+Stage 14 – Crossing Over
+
+After smashing through the wall, Mario reaches the upper-right crossover section.
+
+This region lies above the earlier lower corridor but remains physically separated by brick structures.
+
+The layout now clearly illustrates that Mario has crossed from one logical path to the other without ever being able to reverse his previous traversal.
+
+Caption:
+
+"Mario successfully crosses to the right-hand side."
+
+
+---
+
+Stage 15 – Descending the Zigzag Exit
+
+Finally Mario enters a vertical zigzag shaft.
+
+Alternating ledges force him to descend left, then right, then left again.
+
+Blue arrows illustrate the repeated downward zigzag movement.
+
+Each ledge prevents climbing back upward.
+
+Gravity guarantees one-way traversal.
+
+The descent eventually reaches the exit corridor leading toward the remainder of the Mario level.
+
+Caption:
+
+"Mario exits through the one-way zigzag descent."
+
+
+---
+
+Complete Flow Summary
+
+At the final panel, display the entire crossover gadget in one unified diagram with large numbered arrows showing the complete traversal:
+
+1. Big Mario enters from the left.
+
+2. Walk right along the upper corridor.
+
+3. Hit the first question block.
+
+4. Mushroom appears.
+
+5. Collect the mushroom.
+
+6. Intentionally collide with the Goomba.
+
+7. Shrink into Small Mario.
+
+8. Pass through the one-tile gap.
+
+9. Drop to the lower corridor.
+
+10. Travel all the way to the far left.
+
+11. Climb into the recovery chamber.
+
+12. Hit the second question block.
+
+13. Collect the second mushroom.
+
+14. Become Big Mario again.
+
+15. Travel from left to right.
+
+16. Break the brick wall.
+
+17. Cross to the right side.
+
+18. Descend the one-way zigzag shaft.
+
+19. Exit the crossover gadget.
+
+The completed gadget demonstrates exactly why the NP-hardness reduction works: Mario is forced through a carefully controlled sequence of states—Big → Small → Big—using mushrooms, intentional damage, narrow passages, brick breaking, gravity, and one-way geometry. Every transition is enforced by the game's mechanics, preventing Mario from switching between intersecting logical paths while still allowing each route to cross the other. This makes the crossover gadget a faithful component in the reduction from 3-SAT to Super Mario Bros., preserving logical consistency while enabling complex path intersections within the level.
