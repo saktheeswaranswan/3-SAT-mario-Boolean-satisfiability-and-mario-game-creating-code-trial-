@@ -1,0 +1,344 @@
+Your prompt is already very detailed. If your goal is to make an image model consistently generate the scene in the correct order, here's a more precise and production-style version that explicitly defines the visual narrative, spatial layout, chronology, character continuity, lighting, and gameplay logic.
+
+
+---
+
+MASTER PROMPT — COMPLETE RIGHT-TO-LEFT GAMEPLAY COLLAGE
+
+Create a single ultra-wide panoramic cinematic banner illustrating a complete side-scrolling platform game sequence frozen into one continuous image. The banner functions as a storyboard where every copy of the protagonist represents a different point in time. The sequence must be read strictly from RIGHT to LEFT, beginning at the far right and ending at the far left. Every pose is an instantaneous snapshot of gameplay, allowing the viewer to understand the entire progression without animation.
+
+Use a perfect orthographic side-view camera identical to a classic 2D platform game. The camera is positioned exactly perpendicular to the scene. There is absolutely no perspective projection, no vanishing points, no camera rotation, no tilt, no depth exaggeration, and no three-quarter view. Every brick, platform, wall, hazard, and character remains perfectly side-on. Objects maintain consistent height and scale throughout the banner.
+
+The background is a completely seamless deep royal-purple studio backdrop. It contains no sky, mountains, clouds, vegetation, buildings, textures, gradients, or distant scenery. The only visible elements are the gameplay environment and the protagonist. This minimal background ensures maximum readability of the platform-game action.
+
+The world is constructed entirely from photorealistic terracotta brick blocks inspired by classic platform games. Each brick displays realistic clay coloration, chipped corners, mortar lines, weathering, fine surface texture, and subtle imperfections. Floating platforms are physically impossible yet appear perfectly stable, emphasizing the surreal logic of platform games while maintaining photorealistic rendering.
+
+
+---
+
+CHARACTER CONTINUITY
+
+The protagonist appears multiple times, but every appearance depicts the exact same person at successive moments in time, not multiple different people.
+
+He is:
+
+South Asian adult male
+
+Curly black hair
+
+Full beard
+
+Black rectangular glasses
+
+Pink half-sleeve button shirt
+
+Blue denim jeans
+
+Brown shoes
+
+Average-to-stocky build
+
+Realistic proportions
+
+Identical clothing and appearance throughout every stage
+
+
+Every instance must match perfectly in facial features, body proportions, hairstyle, clothing folds, footwear, skin tone, beard shape, and glasses.
+
+
+---
+
+STAGE 1 — FAR RIGHT — ACTIVATING THE QUESTION BLOCK
+
+The sequence begins on the extreme right.
+
+Construct a tall U-shaped chamber made entirely from terracotta bricks.
+
+The chamber consists of:
+
+thick left wall
+
+thick right wall
+
+solid brick floor
+
+open ceiling
+
+
+Its depth clearly prevents the character from touching the ceiling without jumping.
+
+Centered near the top opening floats a single glowing golden Question Block.
+
+The Question Block emits:
+
+warm golden illumination
+
+soft bloom
+
+magical sparkles
+
+floating dust particles
+
+subtle volumetric glow
+
+
+Freeze the protagonist at the exact instant his right fist strikes the center of the underside of the Question Block.
+
+His body posture demonstrates explosive upward motion.
+
+Include:
+
+bent knees
+
+extended torso
+
+one foot pushing against the wall
+
+opposite leg lifted naturally
+
+left arm extended for balance
+
+determined facial expression
+
+eyes fixed directly on the block
+
+
+The block visibly reacts.
+
+Show:
+
+increased brightness
+
+tiny magical sparks
+
+slight upward vibration
+
+dust falling from surrounding bricks
+
+
+A decorative brick protrusion sits directly beneath the Question Block.
+
+The golden illumination lights:
+
+his hands
+
+glasses
+
+beard
+
+shirt
+
+nearby bricks
+
+
+At this exact moment no rainbow star is visible.
+
+The viewer immediately understands that the player has activated the mystery block.
+
+
+---
+
+STAGE 2 — CENTER — ESCAPING THE CHAMBER
+
+Moving left, the terrain continues seamlessly.
+
+A tall brick pillar separates the chamber from open terrain.
+
+The protagonist has already escaped.
+
+He performs a dramatic leap toward the left.
+
+His body exhibits maximum athletic extension.
+
+Include:
+
+forward leg fully extended
+
+trailing leg bent
+
+torso leaning left
+
+left arm reaching toward the collectible
+
+right arm trailing naturally
+
+eyes focused on the falling object
+
+expression of anticipation
+
+
+Floating slightly ahead is the Rainbow Invincibility Star.
+
+The star has:
+
+five rounded points
+
+black oval eyes
+
+cheerful expression
+
+brilliant rainbow gradient
+
+soft bloom
+
+glowing particle effects
+
+magical lens flares
+
+sparkling rainbow dust
+
+
+The star is gently descending from above as though it has emerged from the activated Question Block.
+
+The protagonist's fingertips are almost touching it.
+
+This frame captures the exact instant before collection.
+
+Below him is a narrow brick pillar already cleared during the jump.
+
+Lighting from the rainbow star creates colorful reflections across:
+
+shirt
+
+beard
+
+glasses
+
+jeans
+
+surrounding bricks
+
+
+This section represents reward, timing, and successful platforming.
+
+
+---
+
+STAGE 3 — LEFT — STAR POWER ACTIVATED
+
+Immediately after collecting the Rainbow Star, the protagonist becomes invincible.
+
+The star has either merged into him or is held confidently in one hand.
+
+A brilliant rainbow aura surrounds his entire body.
+
+The aura contains:
+
+multicolored glow
+
+sparkling particles
+
+shimmering trails
+
+rainbow energy waves
+
+magical bursts
+
+floating glitter
+
+radiant light
+
+
+Despite the magical effect, his clothing remains completely unchanged.
+
+He is now running powerfully toward the left.
+
+His stride is confident.
+
+His posture leans forward.
+
+His facial expression is calm.
+
+He shows no fear.
+
+
+---
+
+FIREBAR OBSTACLE
+
+Ahead is a synchronized line of rotating firebars.
+
+Each firebar consists of:
+
+bronze gear hub
+
+central rotating axle
+
+rigid steel rod
+
+bright orange flames
+
+yellow-white flame cores
+
+glowing embers
+
+visible heat distortion
+
+
+Every firebar rotates clockwise.
+
+Their motion appears synchronized.
+
+The protagonist runs directly through the rotating flames without slowing.
+
+The rainbow aura overlaps the firebars, visually communicating invincibility.
+
+The firebars cast warm orange illumination across nearby bricks, while the rainbow aura adds cool multicolored highlights.
+
+The contrast between orange firelight and rainbow glow emphasizes the temporary power-up.
+
+
+---
+
+FINAL GOAL
+
+At the extreme left edge stands the finish.
+
+Construct:
+
+tall polished silver flagpole
+
+reflective golden sphere on top
+
+black triangular finish flag
+
+simple retro platform-game emblem
+
+brick pedestal supporting the pole
+
+
+The protagonist is only one or two running steps from the flagpole.
+
+His body leans forward with determination.
+
+The rainbow aura remains fully active.
+
+The image should evoke triumph, confidence, and imminent victory.
+
+
+---
+
+COMPOSITION
+
+The entire image forms one continuous level.
+
+No visible panel borders exist.
+
+Instead, terrain naturally connects every gameplay event.
+
+Reading direction is unmistakably RIGHT → LEFT.
+
+Subtle left-pointing arrows or implied movement reinforce chronology.
+
+Every copy of the protagonist occupies a distinct gameplay state.
+
+The spacing between stages is generous enough that the sequence reads instantly without confusion.
+
+The composition resembles a premium promotional banner for a modern platform game.
+
+
+---
+
+RENDERING STYLE
+
+Photorealistic 24K resolution, ultra-high detail, HDR lighting, cinematic global illumination, realistic terracotta brick materials, physically based rendering (PBR), lifelike skin textures, detailed fabric folds, crisp shadows, volumetric lighting, soft bloom, ray-traced reflections, magical particle effects, perfectly sharp orthographic projection, no motion blur, no perspective distortion, seamless panoramic storytelling, and a visually clear progression from activating the Question Block, to collecting the Rainbow Star, to gaining invincibility, to running through synchronized firebars, and finally reaching the finish flag.
